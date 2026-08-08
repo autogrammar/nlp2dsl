@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nlp2dsl.dev/contracts/nlp-result/v1/nlp-result.schema.json",
+  "title": "NLPResult LLM fields v1",
+  "type": "object",
+  "required": ["contractVersion", "intent", "entities", "missing"],
+  "properties": {
+    "contractVersion": { "const": "1.0.0" },
+    "intent": {
+      "type": "object",
+      "required": ["intent", "confidence"],
+      "properties": {
+        "intent": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "entities": {
+      "type": "object",
+      "properties": {
+        "amount": { "type": ["number", "null"] },
+        "currency": { "$ref": "#/$defs/nullableString" },
+        "to": { "$ref": "#/$defs/nullableString" },
+        "email_to": { "$ref": "#/$defs/nullableString" },
+        "subject": { "$ref": "#/$defs/nullableString" },
+        "message": { "$ref": "#/$defs/nullableString" },
+        "channel": { "$ref": "#/$defs/nullableString" },
+        "chat_id": { "$ref": "#/$defs/nullableString" },
+        "title": { "$ref": "#/$defs/nullableString" },
+        "report_type": { "$ref": "#/$defs/nullableString" },
+        "format": { "$ref": "#/$defs/nullableString" },
+        "entity": { "$ref": "#/$defs/nullableString" },
+        "data": { "type": ["object", "null"] },
+        "setting_path": { "$ref": "#/$defs/nullableString" },
+        "setting_value": { "$ref": "#/$defs/nullableString" },
+        "section": { "$ref": "#/$defs/nullableString" },
+        "file_path": { "$ref": "#/$defs/nullableString" },
+        "attachment_path": { "$ref": "#/$defs/nullableString" },
+        "content": { "$ref": "#/$defs/nullableString" },
+        "directory": { "$ref": "#/$defs/nullableString" },
+        "pattern": { "$ref": "#/$defs/nullableString" },
+        "line_start": { "type": ["integer", "null"] },
+        "line_end": { "type": ["integer", "null"] },
+        "mode": { "$ref": "#/$defs/nullableString" },
+        "action_name": { "$ref": "#/$defs/nullableString" },
+        "action_description": { "$ref": "#/$defs/nullableString" },
+        "required_fields": { "$ref": "#/$defs/stringArray" },
+        "aliases": { "$ref": "#/$defs/stringArray" },
+        "description": { "$ref": "#/$defs/nullableString" },
+        "language": { "$ref": "#/$defs/nullableString" },
+        "context": { "$ref": "#/$defs/nullableString" },
+        "include_tests": { "type": ["boolean", "null"] },
+        "shell_command": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "missing": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+    }
+  },
+  "$defs": {
+    "nullableString": { "type": ["string", "null"], "maxLength": 10000 },
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string", "maxLength": 1000 },
+      "maxItems": 256
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,6 @@
+{
+  "contractVersion": "1.0.0",
+  "intent": { "intent": "send_email", "confidence": 0.95 },
+  "entities": { "to": "team@example.com", "subject": "Status" },
+  "missing": ["send_email.body"]
+}

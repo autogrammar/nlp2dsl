@@ -1,0 +1,14 @@
+{
+  "schema": "llm-dsl-contract-manifest/v1",
+  "name": "nlp2dsl-nlp-result",
+  "version": "1.0.0",
+  "boundary": "app.routing.parser.llm.parse_llm",
+  "direction": "llm-output",
+  "canonicalModel": "NLPResultFields",
+  "runtimeOwnedFields": ["raw_text"],
+  "artifacts": {
+    "gbnf": "nlp-result.gbnf",
+    "protobuf": "nlp-result.proto",
+    "jsonSchema": "nlp-result.schema.json"
+  }
+}

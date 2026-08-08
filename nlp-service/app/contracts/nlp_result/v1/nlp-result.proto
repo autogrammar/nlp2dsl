@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package nlp2dsl.contracts.nlp_result.v1;
+
+import "google/protobuf/struct.proto";
+
+message NLPResultFields {
+  string contract_version = 1 [json_name = "contractVersion"];
+  NLPIntent intent = 2;
+  NLPEntities entities = 3;
+  repeated string missing = 4;
+}
+
+message NLPIntent {
+  string intent = 1;
+  double confidence = 2;
+}
+
+message NLPEntities {
+  optional double amount = 1;
+  optional string currency = 2;
+  optional string to = 3;
+  optional string email_to = 4;
+  optional string subject = 5;
+  optional string message = 6;
+  optional string channel = 7;
+  optional string chat_id = 8;
+  optional string title = 9;
+  optional string report_type = 10;
+  optional string format = 11;
+  optional string entity = 12;
+  google.protobuf.Struct data = 13;
+  optional string setting_path = 14;
+  optional string setting_value = 15;
+  optional string section = 16;
+  optional string file_path = 17;
+  optional string attachment_path = 18;
+  optional string content = 19;
+  optional string directory = 20;
+  optional string pattern = 21;
+  optional int32 line_start = 22;
+  optional int32 line_end = 23;
+  optional string mode = 24;
+  optional string action_name = 25;
+  optional string action_description = 26;
+  repeated string required_fields = 27;
+  repeated string aliases = 28;
+  optional string description = 29;
+  optional string language = 30;
+  optional string context = 31;
+  optional bool include_tests = 32;
+  optional string shell_command = 33;
+}

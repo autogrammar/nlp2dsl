@@ -63,7 +63,10 @@ class TestEnrichEntities:
     async def test_enrich_fills_email_body(
         self, _enable_enrich: None, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        async def fake_acompletion(**_kwargs: object) -> _FakeResponse:
+        captured: dict = {}
+
+        async def fake_acompletion(**kwargs: object) -> _FakeResponse:
+            captured.update(kwargs)
             return _FakeResponse(
                 '{"subject": "Status projektu", '
                 '"message": "Dzień dobry, przesyłam aktualny status projektu."}'
@@ -79,6 +82,7 @@ class TestEnrichEntities:
         enriched = await enrich_entities(nlp, ["send_email.body"])
         assert enriched is not None
         assert enriched.entities.message == "Dzień dobry, przesyłam aktualny status projektu."
+        assert captured["extra_headers"]["X-Title"]
 
     @pytest.mark.asyncio
     async def test_enrich_disabled_returns_none(

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 import os
+from typing import Any
 
 from app.registry import get_quality_required_fields
 from app.routing.parser.llm import _detect_provider
@@ -19,7 +20,7 @@ log = logging.getLogger("nlp.enrich")
 
 try:
     from litellm import acompletion
-except Exception:  # pragma: no cover - dependency absence is handled at runtime
+except ImportError:  # pragma: no cover - dependency absence is handled at runtime
     acompletion = None
 
 # config field → entity field
@@ -38,7 +39,7 @@ def is_enrich_enabled() -> bool:
         if ctx is not None:
             return bool(ctx.process.nlp_enrich_missing)
     except Exception:
-        pass
+        log.debug("DOQL context unavailable for enrichment", exc_info=True)
     return os.getenv("NLP_ENRICH_MISSING", "0").strip().lower() in ("1", "true", "yes")
 
 
@@ -143,6 +144,7 @@ async def enrich_entities(nlp: NLPResult, missing_fields: list[str]) -> NLPResul
             LLM_MODEL,
             LLM_TEMPERATURE,
             _parse_json_response,
+            openrouter_extra_headers,
         )
 
         if acompletion is None:
@@ -160,6 +162,8 @@ async def enrich_entities(nlp: NLPResult, missing_fields: list[str]) -> NLPResul
         }
         if LLM_API_BASE:
             kwargs["api_base"] = LLM_API_BASE
+        if LLM_MODEL.startswith("openrouter/"):
+            kwargs["extra_headers"] = openrouter_extra_headers()
 
         response = await acompletion(**kwargs)
         raw = response.choices[0].message.content

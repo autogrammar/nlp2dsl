@@ -1,0 +1,9 @@
+root ::= "{" ws "\"contractVersion\"" ws ":" ws "\"1.0.0\"" ws "," ws "\"intent\"" ws ":" ws object ws "," ws "\"entities\"" ws ":" ws object ws "," ws "\"missing\"" ws ":" ws array ws "}"
+value ::= object | array | string | number | "true" | "false" | "null"
+object ::= "{" ws (string ws ":" ws value (ws "," ws string ws ":" ws value)*)? ws "}"
+array ::= "[" ws (value (ws "," ws value)*)? ws "]"
+string ::= "\"" char* "\""
+char ::= [^"\\\x00-\x1f] | "\\" (["\\/bfnrt] | "u" hex hex hex hex)
+hex ::= [0-9a-fA-F]
+number ::= "-"? ("0" | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [+-]? [0-9]+)?
+ws ::= [ \t\n\r]*

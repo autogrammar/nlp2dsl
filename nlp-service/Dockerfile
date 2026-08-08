@@ -2,6 +2,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+COPY packages/dsl-contracts /opt/nlp2dsl/packages/dsl-contracts
+COPY packages/dsl-validate /opt/nlp2dsl/packages/dsl-validate
+RUN pip install --no-cache-dir \
+    /opt/nlp2dsl/packages/dsl-contracts \
+    /opt/nlp2dsl/packages/dsl-validate
+
 COPY nlp-service/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 

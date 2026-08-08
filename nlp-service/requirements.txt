@@ -1,8 +1,12 @@
 fastapi>=0.110.0
+dsl-contracts>=0.1.0
+dsl-validate>=0.1.0
+env2llm>=0.1.0
 uvicorn>=0.27.0
 pydantic>=2.0
 httpx>=0.27.0
 litellm>=1.40.0
+jsonschema>=4.21
 deepgram-sdk>=3.5.0
 python-multipart>=0.0.9
 redis[hiredis]>=5.0

@@ -24,10 +24,12 @@ Konfiguracja (env vars):
 import json
 import logging
 import os
+from pathlib import Path
 
 import litellm
 from litellm import acompletion
 
+from app.contracts.nlp_result import response_format, validate_payload
 from app.routing.parser.prompt_catalog import build_llm_system_prompt
 from app.schemas import NLPEntities, NLPIntent, NLPResult
 
@@ -40,10 +42,24 @@ LLM_RESPONSE_PREVIEW_LEN: int = int("200")
 litellm.telemetry = False
 litellm.drop_params = True
 
-LLM_MODEL = os.getenv("LLM_MODEL", "openrouter/openai/gpt-5-mini")
+LLM_MODEL = os.getenv("LLM_MODEL", "openrouter/z-ai/glm-5.2")
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0"))
 LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "1024"))
 LLM_API_BASE = os.getenv("LLM_API_BASE", None)
+
+
+def openrouter_extra_headers() -> dict[str, str]:
+    """Return stable OpenRouter App attribution headers."""
+    app_name = (
+        os.getenv("OPENROUTER_APP_NAME", "").strip()
+        or Path.cwd().name
+        or "nlp2dsl"
+    )
+    headers = {"X-Title": app_name}
+    app_url = os.getenv("OPENROUTER_APP_URL", "").strip()
+    if app_url:
+        headers["HTTP-Referer"] = app_url
+    return headers
 
 
 # ── Prompts ───────────────────────────────────────────────────
@@ -80,6 +96,9 @@ async def parse_llm(text: str) -> NLPResult:
 
         if LLM_API_BASE:
             kwargs["api_base"] = LLM_API_BASE
+        if model.startswith("openrouter/"):
+            kwargs["extra_headers"] = openrouter_extra_headers()
+        kwargs["response_format"] = response_format()
 
         response = await acompletion(**kwargs)
 
@@ -87,11 +106,12 @@ async def parse_llm(text: str) -> NLPResult:
         log.debug("LLM raw response: %s", raw[:LLM_RESPONSE_PREVIEW_LEN])
 
         parsed = _parse_json_response(raw)
+        validate_payload(parsed)
 
         return NLPResult(
-            intent=NLPIntent(**parsed.get("intent", {"intent": "unknown", "confidence": 0.0})),
-            entities=NLPEntities(**parsed.get("entities", {})),
-            missing=parsed.get("missing", []),
+            intent=NLPIntent(**parsed["intent"]),
+            entities=NLPEntities(**parsed["entities"]),
+            missing=parsed["missing"],
             raw_text=text,
         )
 
@@ -129,17 +149,8 @@ def _detect_provider() -> str:
 
 
 def _parse_json_response(raw: str) -> dict:
-    """Extract JSON from LLM response (handles markdown fences)."""
-    cleaned = raw.strip()
-
-    if cleaned.startswith("```"):
-        lines = cleaned.split("\n")
-        lines = [ln for ln in lines if not ln.strip().startswith("```")]
-        cleaned = "\n".join(lines).strip()
-
-    start = cleaned.find("{")
-    end = cleaned.rfind("}") + 1
-    if start >= 0 and end > start:
-        cleaned = cleaned[start:end]
-
-    return json.loads(cleaned)
+    """Parse one complete JSON object; prose and markdown fail closed."""
+    parsed = json.loads(raw)
+    if not isinstance(parsed, dict):
+        raise TypeError("LLM response must be a JSON object")
+    return parsed

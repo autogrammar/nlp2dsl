@@ -1,0 +1,6 @@
+{
+  "contractVersion": "2.0.0",
+  "intent": { "intent": "send_email", "confidence": 2 },
+  "entities": { "unknown": "unsafe" },
+  "missing": []
+}
