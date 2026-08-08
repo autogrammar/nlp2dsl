@@ -14,9 +14,17 @@ WORKER = ROOT / "worker"
 BACKEND = ROOT / "backend"
 
 
+def _purge_app_modules() -> None:
+    """Remove the shared service package name before switching import roots."""
+    for key in list(sys.modules):
+        if key == "app" or key.startswith("app."):
+            del sys.modules[key]
+
+
 def _nlp_catalog() -> dict:
     saved = sys.path[:]
     try:
+        _purge_app_modules()
         if str(NLP_SERVICE) not in sys.path:
             sys.path.insert(0, str(NLP_SERVICE))
         from app.registry import ACTIONS_REGISTRY
@@ -28,6 +36,7 @@ def _nlp_catalog() -> dict:
         }
         return action_catalog_payload(contracts)
     finally:
+        _purge_app_modules()
         sys.path[:] = saved
 
 
@@ -49,9 +58,7 @@ def _backend_fallback_catalog() -> dict:
     saved = sys.path[:]
     try:
         # Isolate backend imports from nlp-service `app` package.
-        for key in list(sys.modules):
-            if key == "app" or key.startswith("app."):
-                del sys.modules[key]
+        _purge_app_modules()
         if str(BACKEND) not in sys.path:
             sys.path.insert(0, str(BACKEND))
         catalog_mod = importlib.import_module("app.action_catalog")
@@ -61,6 +68,7 @@ def _backend_fallback_catalog() -> dict:
         }
         return action_catalog_payload(contracts)
     finally:
+        _purge_app_modules()
         sys.path[:] = saved
 
 

@@ -44,7 +44,7 @@ jobs:
           python -m pip install --upgrade pip
           bash scripts/install-local-deps.sh
           pip install -e ".[dev]"
-          pip install -e backend
+          pip install httpx
 
       - name: Unit tests (SDK gates)
         run: |
