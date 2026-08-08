@@ -4,6 +4,12 @@
 #     --profile invoice --profile email --profile conversation --profile llm up -d --build
 
 services:
+  nlp-service:
+    # The service writes generated traces into the bind-mounted examples tree.
+    # Match the invoking host user so the host-side TestQL reporter can update
+    # those artifacts after the container scenarios finish.
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+
   smtp-mock:
     image: mailhog/mailhog:latest
     ports:

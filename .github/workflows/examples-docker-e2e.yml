@@ -62,7 +62,8 @@ jobs:
 
       - name: Start Docker stack
         run: |
-          docker compose -f docker-compose.yml -f docker-compose.e2e.yml \
+          HOST_UID="$(id -u)" HOST_GID="$(id -g)" \
+            docker compose -f docker-compose.yml -f docker-compose.e2e.yml \
             --profile invoice --profile email --profile conversation \
             --profile reports --profile storage --profile scheduled --profile cache \
             up -d --build --wait
@@ -125,7 +126,8 @@ jobs:
 
       - name: Start Docker stack (LLM profile)
         run: |
-          docker compose -f docker-compose.yml -f docker-compose.e2e.yml \
+          HOST_UID="$(id -u)" HOST_GID="$(id -g)" \
+            docker compose -f docker-compose.yml -f docker-compose.e2e.yml \
             --profile invoice --profile conversation --profile llm \
             up -d --build --wait
         env:
