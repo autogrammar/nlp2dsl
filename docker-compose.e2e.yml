@@ -34,13 +34,7 @@ services:
     image: alpine:3.20
     profiles: [conversation, invoice, email, reports, scheduled]
     volumes:
-      - ./examples/01-invoice/.nlp2dsl/fixtures:/fixtures/01-invoice:ro
-      - ./examples/02-email/.nlp2dsl/fixtures:/fixtures/02-email:ro
-      - ./examples/03-report-and-notify/.nlp2dsl/fixtures:/fixtures/03-report-and-notify:ro
-      - ./examples/04-scheduled-report/.nlp2dsl/fixtures:/fixtures/04-scheduled-report:ro
-      - ./examples/05-conversation-flow/.nlp2dsl/fixtures:/fixtures/05-conversation-flow:ro
-      - ./examples/06-interactive-chat/.nlp2dsl/fixtures:/fixtures/06-interactive-chat:ro
-      - ./examples/07-email-conversation/.nlp2dsl/fixtures:/fixtures/07-email-conversation:ro
+      - ./examples/01-invoice/fixtures:/fixtures/01-invoice:ro
     command: ["sh", "-c", "echo example fixtures mounted && sleep infinity"]
 
 volumes:
