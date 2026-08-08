@@ -15,10 +15,9 @@ examples:
     title: Wysyłanie faktury
     docker_profiles: [invoice]
     conversation: true
-    conversation_scenario: .nlp2dsl/conversation.scenario.yaml
-    conversation_scenario_attachment: .nlp2dsl/conversation.attachment.scenario.yaml
-    execution_scenario: .nlp2dsl/execution.scenario.yaml
-    fixtures_dir: .nlp2dsl/fixtures
+    conversation_scenario: scenarios/conversation.yaml
+    execution_scenario: scenarios/execution.yaml
+    fixtures_dir: fixtures
     doql_context: .nlp2dsl/registry/environment.doql.less
     services: [backend, nlp-service, worker, postgres, redis, smtp-mock]
     process:
@@ -48,8 +47,7 @@ examples:
     title: E-mail z quality gate
     docker_profiles: [email]
     conversation: false
-    execution_scenario: .nlp2dsl/execution.scenario.yaml
-    fixtures_dir: .nlp2dsl/fixtures
+    execution_scenario: scenarios/execution.yaml
     services: [backend, nlp-service, worker, postgres, redis, smtp-mock]
     validations:
       - dsl_action: send_email
@@ -58,26 +56,22 @@ examples:
     title: Raport + powiadomienia
     docker_profiles: [reports, storage]
     conversation: false
-    execution_scenario: .nlp2dsl/execution.scenario.yaml
-    fixtures_dir: .nlp2dsl/fixtures
+    execution_scenario: scenarios/execution.yaml
     services: [backend, nlp-service, worker, postgres, redis, minio]
 
   04-scheduled-report:
     title: Harmonogramy
     docker_profiles: [scheduled, cache]
     conversation: false
-    execution_scenario: .nlp2dsl/execution.scenario.yaml
-    fixtures_dir: .nlp2dsl/fixtures
+    execution_scenario: scenarios/execution.yaml
     services: [backend, nlp-service, worker, postgres, redis]
 
   05-conversation-flow:
     title: Dialog faktury (multi-turn)
     docker_profiles: [invoice, conversation]
     conversation: true
-    conversation_scenario: .nlp2dsl/conversation.scenario.yaml
-    conversation_scenario_llm: .nlp2dsl/conversation.llm.scenario.yaml
-    mock_llm: .nlp2dsl/fixtures/mock-llm-replies.yaml
-    fixtures_dir: .nlp2dsl/fixtures
+    conversation_scenario: scenarios/conversation.yaml
+    conversation_scenario_llm: scenarios/conversation.llm.yaml
     services: [backend, nlp-service, worker, postgres, redis]
     process:
       mode: balanced
@@ -93,9 +87,7 @@ examples:
     title: Interaktywny chat (demo skryptowane)
     docker_profiles: [email, conversation]
     conversation: true
-    conversation_scenario: .nlp2dsl/conversation.scenario.yaml
-    mock_llm: .nlp2dsl/fixtures/mock-llm-replies.yaml
-    fixtures_dir: .nlp2dsl/fixtures
+    conversation_scenario: scenarios/conversation.yaml
     services: [backend, nlp-service, worker, postgres, redis]
     validations:
       - conversation_status: executed
@@ -105,9 +97,7 @@ examples:
     title: E-mail z uzupełnieniem body w dialogu
     docker_profiles: [email, conversation]
     conversation: true
-    conversation_scenario: .nlp2dsl/conversation.scenario.yaml
-    mock_llm: .nlp2dsl/fixtures/mock-llm-replies.yaml
-    fixtures_dir: .nlp2dsl/fixtures
+    conversation_scenario: scenarios/conversation.yaml
     services: [backend, nlp-service, worker, postgres, redis, smtp-mock]
     validations:
       - conversation_status: executed
@@ -117,22 +107,19 @@ examples:
     title: Benchmark 20 zapytań
     docker_profiles: []
     conversation: false
-    fixtures_dir: .nlp2dsl/fixtures
     services: [backend, nlp-service, worker, postgres, redis]
 
   09-execution-smoke:
     title: Smoke execute=true
     docker_profiles: []
     conversation: false
-    fixtures_dir: .nlp2dsl/fixtures
     services: [backend, nlp-service, worker, postgres, redis]
 
   10-llm-benchmark:
     title: Benchmark mode=llm
     docker_profiles: [llm]
     conversation: false
-    execution_scenario: .nlp2dsl/execution.llm.scenario.yaml
-    fixtures_dir: .nlp2dsl/fixtures
+    execution_scenario: scenarios/execution.llm.yaml
     services: [backend, nlp-service, worker, postgres, redis]
     requires_llm_key: true
     process:
@@ -147,14 +134,12 @@ examples:
     title: Powiadomienia quality_required
     docker_profiles: []
     conversation: false
-    fixtures_dir: .nlp2dsl/fixtures
     services: [backend, nlp-service, worker, postgres, redis]
 
   12-ir-show:
     title: IntentIR / nlp2dsl show
     docker_profiles: []
     conversation: false
-    fixtures_dir: .nlp2dsl/fixtures
     services: [backend, nlp-service, worker, postgres, redis]
     offline_ok: true
 

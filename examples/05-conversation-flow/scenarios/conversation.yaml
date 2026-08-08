@@ -1,0 +1,27 @@
+format: nlp2dsl.conversation.scenario.v1
+example_id: 05-conversation-flow
+title: Dialog faktury — uzupełnienie pól → uruchom
+
+turns:
+  - role: user
+    text: Chcę wysłać fakturę
+    expect:
+      status: in_progress
+      missing_any: [send_invoice.amount, send_invoice.to, amount, to]
+  - role: user
+    text: 1500 PLN na klient@firma.pl
+    expect:
+      status: ready
+      dsl_action: send_invoice
+  - role: user
+    text: uruchom
+    expect:
+      status: executed
+      execution_completed: true
+
+validations:
+  - id: dsl.send_invoice
+    type: dsl_action
+    action: send_invoice
+  - id: execution.completed
+    type: execution_completed

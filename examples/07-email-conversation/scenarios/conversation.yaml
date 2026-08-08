@@ -1,0 +1,28 @@
+format: nlp2dsl.conversation.scenario.v1
+example_id: 07-email-conversation
+title: E-mail z brakującym body — dialog
+
+turns:
+  - role: user
+    text: Wyślij email do jan@example.com z tematem Podsumowanie tygodnia
+    expect:
+      status_in: [in_progress, incomplete]
+      missing_any: [body, send_email.body]
+  - role: user
+    text: "Treść wiadomości: W załączeniu podsumowanie tygodnia. Wszystkie zadania zamknięte na czas."
+    expect:
+      status_in: [ready, executed]
+      dsl_action: send_email
+  - role: user
+    text: uruchom
+    expect:
+      status: executed
+      execution_completed: true
+    optional_if_executed: true
+
+validations:
+  - id: dsl.send_email
+    type: dsl_action
+    action: send_email
+  - id: execution.completed
+    type: execution_completed

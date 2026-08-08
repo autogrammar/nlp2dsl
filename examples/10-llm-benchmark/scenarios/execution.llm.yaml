@@ -1,0 +1,14 @@
+format: nlp2dsl.execution.scenario.v1
+example_id: 10-llm-benchmark
+title: Pojedyncze zapytanie LLM (smoke)
+nlp_mode: llm
+record_llm_routing: true
+
+queries:
+  - query: Wygeneruj fakturę na 750 PLN dla partner@firma.pl i wyślij ją mailem
+    mode: llm
+    execute: false
+    expect:
+      status_in: [complete, executed, incomplete]
+
+validations: []

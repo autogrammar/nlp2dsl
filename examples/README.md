@@ -98,12 +98,14 @@ Każdy przykład ma profil w `examples/example-profiles.yaml` (wymagane serwisy 
 | `environment.doql.less` | Mirror legacy (kompatybilność ze starymi ścieżkami) |
 | `runs/{run_id}/turn-NN-*.json` | Snapshot stanu po każdej turze konwersacji |
 | `report/last-run.result.json` | Ostatni wynik TestQL / E2E |
-| `conversation.scenario.yaml` | Scenariusz multi-turn (user → nlp2dsl → worker) |
+| `../scenarios/conversation.yaml` | Śledzony scenariusz multi-turn (user → nlp2dsl → worker) |
 | `conversation.testql.toon.yaml` | Scenariusz TestQL (`chatstart` / `chatmessage`) |
 | `conversation.transcript.md` | **Czytelny dialog** user ↔ nlp2dsl (+ parser/LLM routing) |
 | `conversation.trace.json` | Pełna ścieżka HTTP, statusy, execution |
-| `fixtures/mock-llm-replies.yaml` | Deterministyczne uzupełnienia pól (CI bez klucza LLM) |
 | `../fixtures/` (poza `.nlp2dsl`) | Statyczne pliki autofill — nie kasowane przy `rm -rf .nlp2dsl/*` |
+
+Definicje scenariuszy są śledzonym wejściem w `examples/*/scenarios/`.
+Katalog `.nlp2dsl/` zawiera wyłącznie generowane wyniki i ślady wykonania.
 
 ### Uruchomienie pełnego stacku + test konwersacji
 

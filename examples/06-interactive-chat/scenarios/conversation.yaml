@@ -1,0 +1,28 @@
+format: nlp2dsl.conversation.scenario.v1
+example_id: 06-interactive-chat
+title: E-mail — uzupełnienie body w dialogu
+
+turns:
+  - role: user
+    text: Wyślij email do team@firma.pl z tematem Status projektu
+    expect:
+      status_in: [in_progress, incomplete]
+      missing_any: [body, send_email.body]
+  - role: user
+    text: "Treść: Projekt idzie zgodnie z planem, raport w załączniku."
+    expect:
+      status_in: [ready, executed]
+      dsl_action: send_email
+  - role: user
+    text: uruchom
+    expect:
+      status: executed
+      execution_completed: true
+    optional_if_executed: true
+
+validations:
+  - id: dsl.send_email
+    type: dsl_action
+    action: send_email
+  - id: execution.completed
+    type: execution_completed

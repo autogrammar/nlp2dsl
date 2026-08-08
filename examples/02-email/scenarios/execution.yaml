@@ -1,0 +1,21 @@
+format: nlp2dsl.execution.scenario.v1
+example_id: 02-email
+title: E-mail z body → execute
+
+queries:
+  - query: >-
+      Wyślij email do team@firma.pl z tematem Status dzienny.
+      Treść: Wszystkie projekty przebiegają zgodnie z harmonogramem.
+    mode: auto
+    execute: true
+    expect:
+      status: executed
+      dsl_action: send_email
+      execution_completed: true
+
+validations:
+  - id: dsl.send_email
+    type: dsl_action
+    action: send_email
+  - id: execution.completed
+    type: execution_completed
