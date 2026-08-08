@@ -87,7 +87,7 @@ def run_scenario(
         "status": last_result.get("status"),
     }
 
-    out_root = artifact_root or scenario_path.parent
+    out_root = artifact_root or scenario_path.parent.parent / ".nlp2dsl"
     out_root.mkdir(parents=True, exist_ok=True)
     (out_root / "execution.trace.json").write_text(
         json.dumps(trace, indent=2, ensure_ascii=False) + "\n",

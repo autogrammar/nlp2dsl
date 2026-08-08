@@ -107,7 +107,7 @@ def run_scenario(
         validations=validations,
     )
 
-    out_root = artifact_root or scenario_path.parent
+    out_root = artifact_root or scenario_path.parent.parent / ".nlp2dsl"
     _write_artifacts(trace, out_root, scenario)
     return trace
 
