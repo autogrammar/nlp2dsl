@@ -10,6 +10,7 @@ from nlp2cmd_intent.input import analyze_query
 from nlp2cmd_intent.keywords import DetectionResult, KeywordIntentDetector, KeywordPatterns
 from nlp2cmd_intent.normalize import QueryNormalizer
 from nlp2cmd_intent.nlp2cmd_convert import detection_to_intent_ir
+from nlp2cmd_intent.placement import annotate_placement, placement_ambiguities
 from nlp2cmd_intent.protocols import EntityExtractor, IntentDetector
 
 __all__ = [
@@ -22,10 +23,12 @@ __all__ = [
     "KeywordPatterns",
     "QueryNormalizer",
     "analyze_query",
+    "annotate_placement",
     "clarification_enforced",
     "default_intent_detector",
     "detection_to_intent_ir",
     "ensure_intent_clear",
+    "placement_ambiguities",
 ]
 
 __version__ = "0.0.48"

@@ -7,6 +7,7 @@ from pact_ir import IntentIR
 from nlp2cmd_intent.keywords import KeywordIntentDetector
 from nlp2cmd_intent.normalize import QueryNormalizer
 from nlp2cmd_intent.nlp2cmd_convert import detection_to_intent_ir
+from nlp2cmd_intent.placement import annotate_placement
 from nlp2cmd_intent.protocols import EntityExtractor, IntentDetector
 
 
@@ -51,4 +52,4 @@ class IntentPipeline:
         normalized = self.normalizer.normalize(query)
         text = normalized if isinstance(normalized, str) else getattr(normalized, "text", str(query))
         entities = self.entity_extractor.extract(text)
-        return self.intent_detector.detect(text, entities=entities)
+        return annotate_placement(self.intent_detector.detect(text, entities=entities))

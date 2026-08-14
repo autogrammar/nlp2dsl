@@ -13,7 +13,7 @@ intent = IntentPipeline().run("znajdź pliki *.py w src")
 print(intent.intent, intent.target_kind, intent.confidence)
 
 if intent.needs_clarification():
-    # confidence < 0.5 lub niepuste ambiguities
+    # confidence < 0.5, nonempty ambiguities, or HOME vs ADOPT gap
     ...
 
 ensure_intent_clear(intent, enforced=True)  # raises IntentClarificationRequired
