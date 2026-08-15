@@ -39,7 +39,8 @@
     "docs/RESOLVE.md",
     "docs/SIMULATE.md",
     "docs/VALIDATE.md",
-    "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/**"
+    "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/**",
+    "packages/testql-conversations/**"
   ],
   "artifacts": [
     {
@@ -100,7 +101,7 @@
     {
       "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/resolve.schema.json",
       "role": "schema",
-      "digest": "sha256:c55f907834b1726eec74512eca1ac931529048bcc0dd63fa1bbf21bd0f2fdfc1"
+      "digest": "sha256:f66868fc0dd9dabca232b8dbf42d1bde095964fb9b10db864943f2c2946da40c"
     },
     {
       "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/simulate.schema.json",
@@ -252,6 +253,12 @@
       "version": "0.1.0",
       "relation": "implements",
       "uri": "https://github.com/wellmanifest/dsl"
+    },
+    {
+      "standard": "autogrammar.testql",
+      "version": "1.2.67",
+      "relation": "compatible-with",
+      "uri": "https://github.com/autogrammar/testql"
     }
   ],
   "standardsLock": {

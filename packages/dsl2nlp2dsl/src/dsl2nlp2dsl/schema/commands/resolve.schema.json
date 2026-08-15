@@ -1,5 +1,9 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "dsl2nlp2dsl/commands/resolve",
+  "title": "nlp2dsl command: RESOLVE",
+  "description": "Adopted from wellmanifest.dev/schemas/dsl-commands/resolve",
+  "x-adopts": "https://wellmanifest.dev/schemas/dsl-commands/resolve",
   "type": "object",
   "required": ["verb", "text"],
   "properties": {
