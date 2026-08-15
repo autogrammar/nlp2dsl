@@ -1,0 +1,278 @@
+{
+  "$schema": "https://wellmanifest.dev/schemas/dsl-manifest/v1",
+  "schema": "wellmanifest.dsl/manifest/v1",
+  "id": "autogrammar.nlp2dsl",
+  "name": "nlp2dsl MVP Automation Platform",
+  "version": "0.0.48",
+  "status": "experimental",
+  "purpose": "Compile business intents (natural language) into executable processes in Docker containers with conversational AI and dynamic UI",
+  "domain": "nlp-to-dsl",
+  "owners": [
+    {
+      "kind": "repository",
+      "id": "github:autogrammar/nlp2dsl",
+      "responsibilities": ["semantics", "validation", "compatibility", "runtime"]
+    }
+  ],
+  "source": {
+    "repository": "https://github.com/autogrammar/nlp2dsl",
+    "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/generate.schema.json",
+    "declaredVersion": "1",
+    "canonical": "json-ast",
+    "mediaType": "application/schema+json",
+    "selectors": []
+  },
+  "ownedPaths": [
+    "dsl-manifest.json",
+    "README.md",
+    "docs/ACTIONS.md",
+    "docs/CHAT.md",
+    "docs/COMPOSE.md",
+    "docs/DRAFT.md",
+    "docs/EXECUTE.md",
+    "docs/GENERATE.md",
+    "docs/HEALTH.md",
+    "docs/OBSERVE.md",
+    "docs/ORIENT.md",
+    "docs/PARSE.md",
+    "docs/PLAN.md",
+    "docs/RESOLVE.md",
+    "docs/SIMULATE.md",
+    "docs/VALIDATE.md",
+    "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/**"
+  ],
+  "artifacts": [
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/actions.schema.json",
+      "role": "schema",
+      "digest": "sha256:f0841b694c4a85569f7af15d9ebb56435a1cd23b912fb9ddba825779bcb559dc"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/chat.schema.json",
+      "role": "schema",
+      "digest": "sha256:d7c3177663ae3e28c80652cc09c138dcf8969ac2da9813027d245241b3c8c6ad"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/compose.schema.json",
+      "role": "schema",
+      "digest": "sha256:29a324d87fb8224793590367b398da4ca0ef840a5f0ac4978aab342497048e98"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/draft.schema.json",
+      "role": "schema",
+      "digest": "sha256:9043bb7b007187291f862655dcc08f13858fb28c829c1f712ea76214b033e327"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/execute.schema.json",
+      "role": "schema",
+      "digest": "sha256:a43383d681dfdc5bb197a2760c91ddce973f8ffead18464c85dec835aa543a97"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/generate.schema.json",
+      "role": "normative-source",
+      "digest": "sha256:42ebf2fd349eacffd94c9c5fccfe0f0e079d3a59a662b698fc492b549b9ff8e2"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/health.schema.json",
+      "role": "schema",
+      "digest": "sha256:aa248f6ddffd1be68b17752e1f9eea6e82edab2d355c62dd941340939f56fe1e"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/observe.schema.json",
+      "role": "schema",
+      "digest": "sha256:27fa8003a7daaa45b16ffa5cd538e57df05ed1745d3c646a89fb76f638dfbdb4"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/orient.schema.json",
+      "role": "schema",
+      "digest": "sha256:2f98dc18367edfbd8ac77dfd8f48b7c630dba0c6204a79e827618b817dbf70b9"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/parse.schema.json",
+      "role": "schema",
+      "digest": "sha256:125c1a0c15e1f7f68e2eb8408cf903e8e33c92529a850ec677a16c74bdd20dee"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/plan.schema.json",
+      "role": "schema",
+      "digest": "sha256:a8989785cabb653d8caa1db5564547fea2e7d7010b1787ecb825ef52755bd44d"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/resolve.schema.json",
+      "role": "schema",
+      "digest": "sha256:c55f907834b1726eec74512eca1ac931529048bcc0dd63fa1bbf21bd0f2fdfc1"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/simulate.schema.json",
+      "role": "schema",
+      "digest": "sha256:a15deac022ed80e591e45f36fbf53654b57a64aacdde96db80897d858a48ef08"
+    },
+    {
+      "path": "packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/validate.schema.json",
+      "role": "schema",
+      "digest": "sha256:764b99c59d6c6f0acfab5a8ac2dad0228928f52f8f43fc903572c149859fa40a"
+    },
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "digest": "sha256:fc6378754e386c5a34007ce980a7471c73c3edb2acf59c5dc8a682382f31f06f"
+    },
+    {
+      "path": "docs/ACTIONS.md",
+      "role": "documentation",
+      "digest": "sha256:79c40072c200cf0ea3d9c6356497febfb1bd1afdb3ceaea246a132377debc07c"
+    },
+    {
+      "path": "docs/CHAT.md",
+      "role": "documentation",
+      "digest": "sha256:5e90a48a7eb13df74074fe1329fcd4e9a1c85ac22fd3bf2314d3c2c47efee57d"
+    },
+    {
+      "path": "docs/COMPOSE.md",
+      "role": "documentation",
+      "digest": "sha256:0ff5be223e0b43d0928f5a5fa313bca6e46032848fc992aafcbb7e23f5f25b85"
+    },
+    {
+      "path": "docs/DRAFT.md",
+      "role": "documentation",
+      "digest": "sha256:219caa1a929f0eb8d84894b37bb1542367819392da2301e81bd20de06b829547"
+    },
+    {
+      "path": "docs/EXECUTE.md",
+      "role": "documentation",
+      "digest": "sha256:8dd3f052f802254b1228aff10f0fa5cf41f038ad180e83b77d2ba337917ca70f"
+    },
+    {
+      "path": "docs/GENERATE.md",
+      "role": "documentation",
+      "digest": "sha256:163ed6600d38e851ec130dca0609f0e472c8d81125f85abb928940ca243a2c67"
+    },
+    {
+      "path": "docs/HEALTH.md",
+      "role": "documentation",
+      "digest": "sha256:b5e492b7e571beb8e7a0e473d08f8ae1d282d4e9939f645efb3b06a6131f656c"
+    },
+    {
+      "path": "docs/OBSERVE.md",
+      "role": "documentation",
+      "digest": "sha256:e7ce03289ab857b5a6b4c3fda7ee0dc6bf29febce0304310e5d59f205de39111"
+    },
+    {
+      "path": "docs/ORIENT.md",
+      "role": "documentation",
+      "digest": "sha256:cb74db5675aa07b9e3b5105665c6c5155feb1a913f24e585c10552b4c2cdc124"
+    },
+    {
+      "path": "docs/PARSE.md",
+      "role": "documentation",
+      "digest": "sha256:00bda8c419666637b839175085e781bcefbb8c71f9ce7478b762a37a92f5590d"
+    },
+    {
+      "path": "docs/PLAN.md",
+      "role": "documentation",
+      "digest": "sha256:68d0911e73dd96a20eac1464528bd7477ed7f6466ce2a8c22817cae1d42177f1"
+    },
+    {
+      "path": "docs/RESOLVE.md",
+      "role": "documentation",
+      "digest": "sha256:1fe00558b07b61d9f675201308beb8872984b7411203e122f749d17cc829cae9"
+    },
+    {
+      "path": "docs/SIMULATE.md",
+      "role": "documentation",
+      "digest": "sha256:c0776bb2e52ba87745547fecd84dcb067a1bf80980c68aa232e523ef5e6a9916"
+    },
+    {
+      "path": "docs/VALIDATE.md",
+      "role": "documentation",
+      "digest": "sha256:51dbaffa008084ed482b282c7e5d6797bb4dd871991015d7e82512a493fed775"
+    }
+  ],
+  "namespaces": [
+    {
+      "prefix": "nlp2dsl",
+      "uri": "https://github.com/autogrammar/nlp2dsl/"
+    }
+  ],
+  "projections": [],
+  "lifecycle": {
+    "compatibility": "semver",
+    "stability": "experimental",
+    "breaking": "major",
+    "additive": "minor",
+    "fix": "patch"
+  },
+  "semantics": {
+    "effectModel": "propose-only",
+    "unknownPolicy": "reject",
+    "authoritySchema": null
+  },
+  "llm": {
+    "mode": "input",
+    "requestSchemas": ["packages/dsl2nlp2dsl/src/dsl2nlp2dsl/schema/commands/generate.schema.json"],
+    "responseSchemas": [],
+    "naturalLanguage": "typed-source-only",
+    "sourceSchema": "autogrammar.nlp2dsl/v1",
+    "modelAuthority": "propose-only",
+    "strict": true
+  },
+  "documentation": {
+    "vocabularyKind": "commands",
+    "commandRoot": "docs",
+    "errorRoot": "docs/ERROR",
+    "criticalRoot": "docs/CRITICAL",
+    "commands": ["ACTIONS", "CHAT", "COMPOSE", "DRAFT", "EXECUTE", "GENERATE", "HEALTH", "OBSERVE", "ORIENT", "PARSE", "PLAN", "RESOLVE", "SIMULATE", "VALIDATE"],
+    "errorCodes": [],
+    "criticalCodes": []
+  },
+  "findingPolicy": {
+    "schema": "wellmanifest.dsl/findings/v1",
+    "requiredProducers": ["autogrammar.nlp2dsl.check"],
+    "securityProducers": ["autogrammar.nlp2dsl.check"],
+    "blockingSeverities": ["critical"],
+    "requireEvaluable": true,
+    "blockUnresolvedSecurity": true
+  },
+  "publicationPolicy": {
+    "declaredTier": "review",
+    "deterministic": true,
+    "independentReview": true,
+    "externalAuthority": false,
+    "runtimeIsolation": false
+  },
+  "conformance": {
+    "levels": ["manifest", "contract"],
+    "commands": ["python -m pytest tests/"],
+    "validExamples": [],
+    "invalidExamples": []
+  },
+  "mappings": [
+    {
+      "standard": "wellmanifest.dsl",
+      "version": "0.1.0",
+      "relation": "implements",
+      "uri": "https://github.com/wellmanifest/dsl"
+    }
+  ],
+  "standardsLock": {
+    "schema": "wellmanifest.standards-lock/v1",
+    "entries": [
+      {
+        "standard": "wellmanifest.dsl",
+        "version": "0.1.0",
+        "repository": "https://github.com/wellmanifest/dsl",
+        "revision": "67c10bf51c6f984c47f018fac8990e1451436bdd",
+        "contracts": [
+          {
+            "ref": "https://wellmanifest.dev/schemas/dsl-manifest/v1",
+            "digest": "sha256:34d356b76bbd483372df84bb986e15bb84e9c1f8b11b7dc9e3a6c7276c85ed13"
+          },
+          {
+            "ref": "https://wellmanifest.dev/spec/DSL_STANDARD.md",
+            "digest": "sha256:2dfb09b5689289c3ad096057ca1dc2f19512639e3662188dd6c5ee25e4e8c53b"
+          }
+        ]
+      }
+    ]
+  }
+}

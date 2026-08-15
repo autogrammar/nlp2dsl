@@ -1,5 +1,9 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "dsl2nlp2dsl/commands/generate",
+  "title": "nlp2dsl command: GENERATE",
+  "description": "Adopted from wellmanifest.dev/schemas/dsl-commands/generate",
+  "x-adopts": "https://wellmanifest.dev/schemas/dsl-commands/generate",
   "type": "object",
   "required": ["verb", "text"],
   "properties": {
