@@ -1,0 +1,117 @@
+{
+  "approvalEvidence": {
+    "requiredBindings": [
+      "repository",
+      "pullRequest",
+      "headSha",
+      "ticket",
+      "actor"
+    ],
+    "reviewVerificationMethod": "github-api-allowlist",
+    "schema": "new-project.approval-evidence/v1",
+    "signedAttestationPredicateType": "https://wellmanifest.dev/attestations/validator/v1"
+  },
+  "coordination": {
+    "integration": {
+      "workstream": "integration"
+    },
+    "maxActiveTicketsPerWorkstream": 1,
+    "mode": "workstreams",
+    "rejectActiveScopeOverlap": true
+  },
+  "delivery": {
+    "allowedComplexityClasses": [
+      "XS",
+      "S"
+    ],
+    "checkpointMinutes": 25,
+    "dependencyManifestPaths": [
+      "package.json",
+      "pyproject.toml",
+      "go.mod",
+      "Cargo.toml",
+      "pom.xml"
+    ],
+    "maxActiveMinutes": 30,
+    "maxAffectedComponents": 2,
+    "maxImplementationFiles": 5,
+    "maxPublicInterfaceChanges": 0,
+    "maxRuntimeDependencies": 0,
+    "targetBranches": [
+      "main"
+    ]
+  },
+  "docker": {
+    "composeFiles": [
+      "compose.yml",
+      "docker-compose.yml",
+      "compose.e2e.yml"
+    ],
+    "dockerfiles": [
+      "Dockerfile",
+      "Dockerfile.e2e"
+    ],
+    "required": true
+  },
+  "governancePaths": [
+    "TODO.md",
+    "project/TICKETS.md",
+    "project/ticket-*/**"
+  ],
+  "requiredFiles": [
+    "README.md",
+    "VERSION",
+    "CHANGELOG.md",
+    "TODO.md",
+    "AGENTS.md",
+    "Dockerfile",
+    "project/TICKETS.md",
+    "project/new-ticket.sh",
+    "project/readme.sh"
+  ],
+  "schema": "new-project.governance/v2",
+  "stacks": [
+    "docker"
+  ],
+  "standard": {
+    "id": "wellmanifest/new-project",
+    "version": "0.14.0"
+  },
+  "ticket": {
+    "activeStatuses": [
+      "IN_PROGRESS"
+    ],
+    "closedStatuses": [
+      "DONE",
+      "CANCELLED"
+    ],
+    "directoryPattern": "^ticket-[0-9]{3}$",
+    "implementationStates": [
+      "EDIT",
+      "VALIDATION",
+      "PUBLICATION"
+    ],
+    "intentFile": "intent.json",
+    "nonActiveStatuses": [
+      "BACKLOG",
+      "PLAN",
+      "BLOCKED"
+    ],
+    "requiredAgentFiles": [
+      "ai-*.md",
+      "ai-*-logs.txt"
+    ],
+    "requiredFiles": [
+      "README.md",
+      "preprompt.md",
+      "changelog.md",
+      "intent.json"
+    ],
+    "root": "project"
+  },
+  "trustedApprovalSources": [
+    "github-review",
+    "github-app-review",
+    "signed-attestation"
+  ]
+}

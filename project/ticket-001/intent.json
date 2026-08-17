@@ -1,0 +1,36 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-001",
+  "summary": "Adopt wellmanifest/new-project governance pack",
+  "workstream": "governance",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P2",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    "project/ticket-001/**",
+    "project/TICKETS.md",
+    "project/governance-check.sh",
+    "project/new-ticket.sh",
+    "project/readme.sh",
+    ".governance/**",
+    "AGENTS.md",
+    "VERSION",
+    "CHANGELOG.md",
+    "TODO.md",
+    "Dockerfile",
+    "Dockerfile.e2e",
+    "compose.yml",
+    "docker-compose.yml",
+    "compose.e2e.yml",
+    ".gitignore"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null
+}

@@ -264,3 +264,8 @@ __marimo__/
 .aider*
 .github/
 .pactown-sandboxes/
+
+# Koru/planfile runtime artifacts
+.koru/
+.nlp2dsl/
+.planfile/
