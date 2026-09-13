@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-env2llm = { path = "../../semcod/env2llm", editable = true }
+env2llm = { path = "../env2llm", editable = true }
 dsl-contracts = { path = "packages/dsl-contracts", editable = true }
 workflow-export = { path = "packages/workflow-export", editable = true }
 nlp2dsl-stack = { path = "packages/nlp2dsl-stack", editable = true }
