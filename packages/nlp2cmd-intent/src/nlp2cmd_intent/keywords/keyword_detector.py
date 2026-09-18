@@ -328,8 +328,19 @@ class KeywordIntentDetector:
         if accepted := self._accept_detection(self._semantic_detection(text)):
             return accepted
 
+        # Prefer LLM detection when configured
+        if os.getenv("NLP2CMD_PREFER_LLM"):
+            if llm_res := self._llm_detection(text):
+                return llm_res
+
         result = self._keyword_detection(text, text_lower)
         result.matched = result.confidence >= self.confidence_threshold
+
+        # Model-driven fallback when keyword detection fails or domain is unknown (PLF-103)
+        if not result.matched or result.domain == "unknown":
+            if llm_res := self._llm_detection(text):
+                return llm_res
+
         return result
 
     def detect_intent_ir(self, text: str):
@@ -451,6 +462,68 @@ class KeywordIntentDetector:
         except Exception as e:
             logger.debug(f"Semantic matching failed: {e}")
         
+        return None
+
+    def _llm_detection(self, text: str) -> Optional[DetectionResult]:
+        """Model-driven intent parsing (NL -> DSL / DetectionResult) using LLM."""
+        if not text or not text.strip():
+            return None
+
+        # Check if LLM is enabled or API keys are set
+        api_key = (
+            os.getenv("OPENAI_API_KEY")
+            or os.getenv("GROQ_API_KEY")
+            or os.getenv("GEMINI_API_KEY")
+            or os.getenv("NLP2CMD_FORCE_LLM")
+        )
+        if not api_key and not os.getenv("NLP2CMD_ENABLE_LLM"):
+            return None
+
+        try:
+            import json
+            import litellm
+
+            system_prompt = (
+                "You are an intent and entity parser for nlp2cmd.\n"
+                "Extract the target domain, intent, and entities from natural language instructions.\n"
+                "Allowed Domains: 'shell', 'docker', 'kubernetes', 'sql', 'browser', 'desktop'\n"
+                "Allowed Intents per domain:\n"
+                "- shell: run, list, delete, info, find, exec, system, network\n"
+                "- docker: run, stop, ps, build, logs, restart, exec\n"
+                "- kubernetes: get, apply, delete, describe, logs, exec\n"
+                "- sql: select, insert, update, delete, create, drop\n"
+                "- browser: navigate, click, fill, scrape, open\n"
+                "- desktop: open, focus, close, screenshot\n"
+                "Return JSON ONLY with format:\n"
+                '{"domain": "<domain>", "intent": "<intent>", "confidence": 0.95, "entities": {"<key>": "<val>"}}'
+            )
+            model = os.getenv("NLP2CMD_LLM_MODEL", "gpt-4o-mini")
+            response = litellm.completion(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Instruction: {text!r}"},
+                ],
+                response_format={"type": "json_object"},
+                timeout=float(os.getenv("NLP2CMD_LLM_TIMEOUT", "8.0")),
+                temperature=0.0,
+            )
+            content = response.choices[0].message.content
+            data = json.loads(content)
+            domain = str(data.get("domain", "unknown")).lower()
+            intent = str(data.get("intent", "unknown")).lower()
+            confidence = float(data.get("confidence", 0.9))
+            entities = dict(data.get("entities", {}))
+            if domain != "unknown" and intent != "unknown":
+                return DetectionResult(
+                    domain=domain,
+                    intent=intent,
+                    confidence=confidence,
+                    entities=entities,
+                    matched_keyword="llm_intent_parsing",
+                )
+        except Exception as e:
+            logger.debug(f"LLM intent detection failed: {e}")
         return None
     
     def _best_keyword_match(self, text_lower: str, *, priority_only: bool) -> DetectionResult:
