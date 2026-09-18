@@ -83,6 +83,29 @@ class TestOrientQuery:
         o = orient_query("wyślij fakturę na 100 PLN", connector="mullm")
         assert o.category == "workflow"
 
+    def test_llm_orientation_fallback(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import json
+        from unittest.mock import MagicMock, patch
+
+        monkeypatch.setenv("NLP2DSL_FORCE_LLM", "1")
+        fake_json = {
+            "category": "workflow",
+            "suggested_action": "generate_report",
+            "confidence": 0.96,
+            "shell_command": None,
+        }
+        mock_resp = MagicMock()
+        mock_resp.choices = [MagicMock(message=MagicMock(content=json.dumps(fake_json)))]
+        mock_litellm = MagicMock()
+        mock_litellm.completion.return_value = mock_resp
+
+        with patch.dict("sys.modules", {"litellm": mock_litellm}):
+            o = orient_query("przygotuj zestawienie kwartalne i prześlij zarządowi", connector="mullm")
+            assert o.category == "workflow"
+            assert o.suggested_action == "generate_report"
+            assert o.confidence == 0.96
+            assert "llm_orientation" in o.reason_codes
+
 
 class TestResolveIntentOrientation:
     @pytest.mark.asyncio

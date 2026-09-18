@@ -357,6 +357,62 @@ def _orient_shell_prefix(raw: str, *, conn: str) -> OrientationResult | None:
     )
 
 
+def orient_query_llm(text: str, *, connector: str = "mullm") -> OrientationResult | None:
+    """Model-driven intent & category orientation using LLM (NLP-014)."""
+    raw = (text or "").strip()
+    if not raw:
+        return None
+
+    api_key = (
+        os.getenv("OPENAI_API_KEY")
+        or os.getenv("GROQ_API_KEY")
+        or os.getenv("GEMINI_API_KEY")
+        or os.getenv("NLP2DSL_FORCE_LLM")
+    )
+    if not api_key and not os.getenv("NLP2DSL_ENABLE_LLM_ORIENT"):
+        return None
+
+    try:
+        import json
+        import litellm
+
+        system_prompt = (
+            "You are an orientation classifier for nlp2dsl.\n"
+            "Classify the user instruction into one of the following QueryCategory values:\n"
+            "- 'file_list_registry': listing user/workspace files from an artifact registry or localfs\n"
+            "- 'file_list_host': listing files on a remote or local Linux host\n"
+            "- 'shell': running a bash/shell command or system diagnostics\n"
+            "- 'workflow': business workflows (invoices, emails, slack, crm)\n"
+            "- 'system_local': local system operations\n"
+            "Output JSON ONLY: {\"category\": \"<category>\", \"suggested_action\": \"<action_name>\", \"confidence\": 0.95, \"shell_command\": \"<optional_cmd>\"}"
+        )
+        model = os.getenv("NLP2DSL_LLM_MODEL", "gpt-4o-mini")
+        resp = litellm.completion(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Query: {raw!r}"},
+            ],
+            response_format={"type": "json_object"},
+            timeout=float(os.getenv("NLP2DSL_LLM_TIMEOUT", "8.0")),
+            temperature=0.0,
+        )
+        data = json.loads(resp.choices[0].message.content)
+        cat = data.get("category", "unknown")
+        if cat in ("file_list_registry", "file_list_host", "shell", "workflow", "system_local"):
+            return OrientationResult(
+                category=cat,
+                suggested_action=data.get("suggested_action"),
+                confidence=float(data.get("confidence", 0.9)),
+                reason_codes=["llm_orientation"],
+                shell_command=data.get("shell_command"),
+                connector=connector,
+            )
+    except Exception:
+        pass
+    return None
+
+
 def orient_query(text: str, *, connector: str = "mullm") -> OrientationResult:
     """
     Klasyfikuje zapytanie bez LLM — Mullm BFF woła to przed regułami / OpenRouter.
@@ -374,6 +430,10 @@ def orient_query(text: str, *, connector: str = "mullm") -> OrientationResult:
             reason_codes=["empty_message"],
             connector=conn,
         )
+
+    if os.getenv("NLP2DSL_PREFER_LLM"):
+        if llm_hit := orient_query_llm(raw, connector=conn):
+            return llm_hit
 
     if hit := _orient_shell_prefix(raw, conn=conn):
         return hit
@@ -407,6 +467,10 @@ def orient_query(text: str, *, connector: str = "mullm") -> OrientationResult:
             reason_codes=["orientation_nlp2cmd_run"],
             connector=conn,
         )
+
+    # Model-driven LLM fallback before declaring unknown (NLP-014)
+    if llm_hit := orient_query_llm(raw, connector=conn):
+        return llm_hit
 
     return OrientationResult(
         category="unknown",
