@@ -7,7 +7,14 @@ TITLE="New Task Ticket"
 USERS=""
 AGENT="antigravity"
 WORKSTREAM=""
+SCOPE_ARGUMENTS=()
 FORCE_NEW=false
+ALLOCATION_KEY=""
+ALLOCATION_RECEIPT=""
+REFRESH_REMOTE=false
+TICKET_STORAGE=""
+STORE_ROOT=""
+STORE_SHA256=""
 
 # Work classification for intent/v3. The defaults are the contract's own answer
 # for an unclassified new ticket: rule W-CLASS-006 (work-request / maintenance)
@@ -23,12 +30,22 @@ Usage: ./project/new-ticket.sh [options]
 
   -t, --title TITLE       Ticket title
   -a, --agent ID         Agent provider/id used for ai-{ID}.md
-  -w, --workstream ID    Required workstream declared in the governance manifest
+  -w, --workstream ID    Required workstream from the governance registry
+      --path PATTERN     Repeatable owned implementation scope; persisted in intent
   -u, --users IDS        Compatibility input only; human files are not created
   -k, --kind KIND        Work kind; default SERVICE
   -p, --priority P       Work priority; default P2
   -o, --origin ORIGIN    Work origin; default health
+      --allocation-key K Stable Supervisor/task correlation for registered mode
+      --allocation-receipt FILE
+                          Receipt returned by the registered allocator process
       --force-new        Create a new ticket despite an unfinished ticket
+      --refresh-remote   Fetch/prune origin before allocating; local refs are used by default
+      --storage MODE     files (default) or sqlite; may come from local Git configuration
+      --ticket-store-root DIR
+                          Installed Registry ticket writer package
+      --ticket-store-sha256 SHA
+                          Independent digest of the complete writer package
   -h, --help             Show this help
 
 Accepted classification values are read from the work classification contract,
@@ -38,6 +55,7 @@ declare the three explicitly for a defect or new behavior.
 
 Only a human may authorize --force-new. Human-owned user-*.md files must be
 created and written by that human or by a trusted intake boundary.
+--force-new never bypasses repository work-start admission.
 EOF
 }
 
@@ -71,6 +89,11 @@ while [[ $# -gt 0 ]]; do
       WORKSTREAM="$2"
       shift 2
       ;;
+    --path)
+      require_value "$@"
+      SCOPE_ARGUMENTS+=("--path=$2")
+      shift 2
+      ;;
     -k|--kind)
       require_value "$@"
       KIND="$2"
@@ -86,8 +109,28 @@ while [[ $# -gt 0 ]]; do
       ORIGIN="$2"
       shift 2
       ;;
+    --storage)
+      require_value "$@"; TICKET_STORAGE="$2"; shift 2 ;;
+    --ticket-store-root)
+      require_value "$@"; STORE_ROOT="$2"; shift 2 ;;
+    --ticket-store-sha256)
+      require_value "$@"; STORE_SHA256="$2"; shift 2 ;;
+    --allocation-key)
+      require_value "$@"
+      ALLOCATION_KEY="$2"
+      shift 2
+      ;;
+    --allocation-receipt)
+      require_value "$@"
+      ALLOCATION_RECEIPT="$2"
+      shift 2
+      ;;
     --force-new)
       FORCE_NEW=true
+      shift
+      ;;
+    --refresh-remote)
+      REFRESH_REMOTE=true
       shift
       ;;
     -h|--help)
@@ -113,8 +156,80 @@ if [[ ! "$AGENT" =~ ^[a-z0-9][a-z0-9._-]*$ ]]; then
   exit 2
 fi
 
+TICKET_STORAGE="${TICKET_STORAGE:-$(git config --local --get new-project.ticketStorage 2>/dev/null || true)}"
+TICKET_STORAGE="${TICKET_STORAGE:-files}"
+if [[ "$TICKET_STORAGE" != files && "$TICKET_STORAGE" != sqlite ]]; then
+  echo "GOV-TICKET-ALLOCATION-003: unknown ticket storage mode." >&2
+  exit 1
+fi
+TICKET_STORAGE_HELPER=""
+for candidate in .governance/ticket_storage.py scripts/ticket_storage.py; do
+  if [[ -f "$candidate" ]]; then TICKET_STORAGE_HELPER="$candidate"; break; fi
+done
+if [[ "$TICKET_STORAGE" == sqlite ]]; then
+  STORE_ROOT="${STORE_ROOT:-$(git config --local --get new-project.ticketStoreRoot 2>/dev/null || true)}"
+  STORE_SHA256="${STORE_SHA256:-$(git config --local --get new-project.ticketStoreSha256 2>/dev/null || true)}"
+  if [[ -z "$TICKET_STORAGE_HELPER" || -z "$STORE_ROOT" || -z "$STORE_SHA256" ]]; then
+    echo "GOV-TICKET-ALLOCATION-003: SQLite allocation requires the managed bridge and an independently pinned Registry writer." >&2
+    exit 1
+  fi
+  python3 "$TICKET_STORAGE_HELPER" verify --runtime-root "$STORE_ROOT" --runtime-sha256 "$STORE_SHA256"
+fi
+
+governance_manifest() {
+  local candidate
+  for candidate in .governance/manifest.json .governance/manifest.base.json governance/manifest.hub.json; do
+    if [[ -f "$candidate" ]]; then
+      printf '%s' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+if ! GOVERNANCE_MANIFEST="$(governance_manifest)"; then
+  echo "GOV-MANIFEST-001: governance registry not found; cannot allocate a ticket." >&2
+  echo "  remediation: restore .governance/manifest.json in an adopter or governance/manifest.hub.json in the hub." >&2
+  exit 1
+fi
+
+if ! REGISTRY_VALUES="$(python3 - "$GOVERNANCE_MANIFEST" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as stream:
+    manifest = json.load(stream)
+ticket = manifest.get("ticket")
+coordination = manifest.get("coordination")
+statuses = ticket.get("activeStatuses") if isinstance(ticket, dict) else None
+workstreams = coordination.get("workstreams") if isinstance(coordination, dict) else None
+if (
+    manifest.get("schema") != "new-project.governance/v2"
+    or not isinstance(statuses, list)
+    or not statuses
+    or any(not isinstance(item, str) or not item for item in statuses)
+    or len(statuses) != len(set(statuses))
+    or not isinstance(workstreams, dict)
+    or not workstreams
+    or any(not isinstance(item, str) or not item for item in workstreams)
+):
+    raise SystemExit(1)
+for status in statuses:
+    print(f"status\t{status}")
+for workstream in sorted(workstreams):
+    print(f"workstream\t{workstream}")
+PY
+)"; then
+  echo "GOV-MANIFEST-001: governance registry is invalid: $GOVERNANCE_MANIFEST" >&2
+  echo "  remediation: restore a valid governance/v2 ticket and coordination registry." >&2
+  exit 1
+fi
+
+ACTIVE_STATUSES="$(printf '%s\n' "$REGISTRY_VALUES" | sed -n 's/^status[[:space:]]//p')"
+WORKSTREAM_REGISTRY="$(printf '%s\n' "$REGISTRY_VALUES" | sed -n 's/^workstream[[:space:]]//p')"
+
 if [[ -z "$WORKSTREAM" ]]; then
-  echo "Workstream is required; choose an id declared in .governance/manifest.json" >&2
+  echo "Workstream is required; choose an id declared in $GOVERNANCE_MANIFEST" >&2
   exit 2
 fi
 
@@ -123,10 +238,43 @@ if [[ ! "$WORKSTREAM" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
   echo "Workstream id must match [a-z0-9][a-z0-9-]*" >&2
   exit 2
 fi
+if ! grep -Fxq -- "$WORKSTREAM" <<< "$WORKSTREAM_REGISTRY"; then
+  echo "GOV-WORKSTREAM-001: workstream '$WORKSTREAM' is not declared in $GOVERNANCE_MANIFEST." >&2
+  echo "  accepted: $(printf '%s' "$WORKSTREAM_REGISTRY" | tr '\n' ' ')" >&2
+  exit 1
+fi
 
 is_active_ticket() {
-  local readme="$1/README.md"
-  [[ -f "$readme" ]] && grep -Eiq '^-[[:space:]]+\*\*Status\*\*:[[:space:]]*IN_PROGRESS([[:space:]]|$)' "$readme"
+  local directory="$1" resolver status arguments=() runner=()
+  if [[ "$TICKET_STORAGE" != sqlite ]]; then
+    [[ -f "$directory/README.md" ]] || return 1
+  fi
+  for resolver in .governance/ticket_activity.py scripts/ticket_activity.py; do
+    [[ -f "$resolver" ]] && break
+  done
+  if [[ ! -f "$resolver" ]]; then
+    echo "GOV-TICKET-ACTIVITY-001: managed ticket activity resolver is missing." >&2
+    echo "  remediation: restore the complete pinned governance package before allocating." >&2
+    exit 1
+  fi
+  while IFS= read -r status; do
+    arguments+=(--active-status "$status")
+  done <<< "$ACTIVE_STATUSES"
+  if [[ "$TICKET_STORAGE" == sqlite ]]; then
+    runner=(python3 "$TICKET_STORAGE_HELPER" active --root "$PWD" --ticket "${directory##*/}")
+  else
+    runner=(python3 "$resolver" --root . resolve --ticket-dir "$directory")
+  fi
+  if "${runner[@]}" "${arguments[@]}" >/dev/null; then
+    status=0
+  else
+    status=$?
+  fi
+  case "$status" in
+    0) return 0 ;;
+    1) return 1 ;;
+    *) exit 1 ;;
+  esac
 }
 
 # The dimension vocabularies live in the work classification contract, which is
@@ -154,7 +302,7 @@ require_classification_value() {
   allowed="$(python3 -c 'import json,sys
 data = json.load(open(sys.argv[1]))
 print("\n".join(data["dimensions"][sys.argv[2]]))' "$dsl" "$dimension")"
-  if ! printf '%s\n' "$allowed" | grep -Fxq -- "$value"; then
+  if ! grep -Fxq -- "$value" <<< "$allowed"; then
     echo "GOV-CLASS-001: '$value' is not a declared $dimension in $dsl." >&2
     echo "  accepted: $(printf '%s' "$allowed" | tr '\n' ' ')" >&2
     exit 1
@@ -164,6 +312,58 @@ print("\n".join(data["dimensions"][sys.argv[2]]))' "$dsl" "$dimension")"
 require_classification_value kind "$KIND"
 require_classification_value priority "$PRIORITY"
 require_classification_value origin "$ORIGIN"
+
+# Validate the explicit scope before any identity reservation or registered
+# allocation request. The same argv is used for admission and both stores.
+if (( ${#SCOPE_ARGUMENTS[@]} )); then
+  if [[ -z "$TICKET_STORAGE_HELPER" ]]; then
+    echo "GOV-WORK-START-001: explicit scope requires the managed ticket storage bridge." >&2
+    exit 3
+  fi
+  python3 "$TICKET_STORAGE_HELPER" scope --root "$PWD" --workstream "$WORKSTREAM" "${SCOPE_ARGUMENTS[@]}" >/dev/null
+fi
+
+allocation_config() {
+  local candidate
+  for candidate in .governance/ticket-allocation.json governance/ticket-allocation.json; do
+    if [[ -f "$candidate" ]]; then
+      printf '%s' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+allocation_runtime() {
+  local candidate
+  for candidate in .governance/ticket_allocation.py scripts/ticket_allocation.py; do
+    if [[ -f "$candidate" ]]; then
+      printf '%s' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+ALLOCATION_MODE="local-single-clone"
+ALLOCATION_CONFIG=""
+ALLOCATION_RUNTIME=""
+if ALLOCATION_CONFIG="$(allocation_config)"; then
+  if ! ALLOCATION_RUNTIME="$(allocation_runtime)"; then
+    echo "GOV-TICKET-ALLOCATION-003: ticket allocation policy exists but its managed validator is missing." >&2
+    echo "  remediation: restore the complete pinned governance package before allocating." >&2
+    exit 5
+  fi
+  if ! ALLOCATION_MODE="$(python3 "$ALLOCATION_RUNTIME" mode --config "$ALLOCATION_CONFIG")"; then
+    echo "  remediation: restore a valid managed ticket-allocation/v1 policy." >&2
+    exit 5
+  fi
+fi
+if [[ "$ALLOCATION_MODE" == "local-single-clone" && ( -n "$ALLOCATION_KEY" || -n "$ALLOCATION_RECEIPT" ) ]]; then
+  echo "GOV-TICKET-ALLOCATION-003: registered allocation inputs are forbidden in local-single-clone mode." >&2
+  echo "  remediation: remove the inputs or adopt a registered allocator policy." >&2
+  exit 5
+fi
 
 # Serialize allocation across every worktree sharing this clone. The high-water
 # mark reserves a number even before its ticket is committed and therefore
@@ -186,6 +386,41 @@ if git_common_dir="$(git rev-parse --path-format=absolute --git-common-dir 2>/de
   trap release_allocation_lock EXIT INT TERM
 fi
 
+# Remote refresh is explicit. The start check below uses only observed refs.
+if [[ "$REFRESH_REMOTE" == true ]] \
+  && git rev-parse --git-dir >/dev/null 2>&1 \
+  && git remote get-url origin >/dev/null 2>&1; then
+  if ! git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*' >/dev/null 2>&1; then
+    echo "GOV-TICKET-LOCK-004: remote ticket refs could not be refreshed safely." >&2
+    echo "  remediation: restore origin connectivity and retry, or omit --refresh-remote and rely on local refs plus protected merge collision detection." >&2
+    exit 4
+  fi
+fi
+
+# Before reserving an ID or contacting the registered allocator, inspect all
+# registered worktrees and local branches, not just this checkout's ticket.
+# The clone allocation lock covers this observation and the identity effect;
+# it is NOT a writer lease. Recheck admission and fencing before development.
+# Unborn/non-Git bootstrap has no branch history yet and retains seed behavior.
+if git rev-parse --verify HEAD >/dev/null 2>&1; then
+  start_runtime=""
+  for candidate in .governance/work_start_check.py scripts/work_start_check.py; do
+    if [[ -f "$candidate" ]]; then
+      start_runtime="$candidate"
+      break
+    fi
+  done
+  if [[ -z "$start_runtime" ]]; then
+    echo "GOV-WORK-START-001: managed work-start checker is missing; restore the complete pinned package." >&2
+    exit 3
+  fi
+  if ! start_report="$(python3 "$start_runtime" --root . --workstream "$WORKSTREAM" --storage "$TICKET_STORAGE" "${SCOPE_ARGUMENTS[@]}" --allocation-check)"; then
+    printf '%s\n' "$start_report" >&2
+    echo "GOV-WORK-START-001: reuse, assist, hand off or serialize existing work before new allocation; preserve all checkouts." >&2
+    exit 3
+  fi
+fi
+
 # A ticket number taken on a branch is invisible on disk in another worktree.
 # Consult every local and fetched remote branch known to this clone.
 refs_highest() {
@@ -205,8 +440,19 @@ refs_highest() {
 
 highest=0
 conflicting_ticket=""
+current_branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+if [[ "$current_branch" =~ ticket[-/]([0-9]{3,}) ]]; then
+  current_ticket="project/ticket-${BASH_REMATCH[1]}"
+  if is_active_ticket "$current_ticket"; then
+    conflicting_ticket="$current_ticket"
+  fi
+fi
 if git rev-parse --git-dir >/dev/null 2>&1; then
   highest="$(refs_highest)"
+  if [[ -n "$TICKET_STORAGE_HELPER" ]]; then
+    database_highest="$(python3 "$TICKET_STORAGE_HELPER" highest --root "$PWD")"
+    (( database_highest > highest )) && highest=$database_highest
+  fi
   if [[ -n "$allocation_state" && -f "$allocation_state" ]]; then
     read -r reserved_highest < "$allocation_state"
     if [[ ! "$reserved_highest" =~ ^[0-9]+$ ]]; then
@@ -224,7 +470,7 @@ if [[ -d project ]]; then
     [[ "$number" =~ ^[0-9]+$ ]] || continue
     decimal=$((10#$number))
     (( decimal > highest )) && highest=$decimal
-    if is_active_ticket "$dir"; then
+    if [[ -z "$current_branch" ]] && is_active_ticket "$dir"; then
       active_workstream="$(sed -nE 's/^[[:space:]]*"workstream"[[:space:]]*:[[:space:]]*"([a-z0-9-]+)".*/\1/p' "$dir/intent.json" 2>/dev/null | head -n 1)"
       if [[ -z "$active_workstream" || "$active_workstream" == "unresolved" || "$WORKSTREAM" == "unresolved" || "$active_workstream" == "$WORKSTREAM" ]]; then
         conflicting_ticket="$dir"
@@ -235,18 +481,73 @@ fi
 
 if [[ -n "$conflicting_ticket" && "$FORCE_NEW" != true ]]; then
   echo "Active ticket conflicts with workstream '$WORKSTREAM': $conflicting_ticket" >&2
-  echo "Continue it, choose a distinct declared workstream, close/cancel it, or use --force-new after an explicit human decision." >&2
+  echo "Continue it, or return to the default branch before allocating a distinct workstream." >&2
   exit 3
 fi
 
-next_num=$((highest + 1))
+if [[ "$ALLOCATION_MODE" == "registered" ]]; then
+  if [[ -z "$ALLOCATION_KEY" ]]; then
+    echo "GOV-TICKET-ALLOCATION-003: registered mode requires --allocation-key from the Supervisor correlation." >&2
+    echo "  remediation: retry with the stable task correlation; never invent a local sequence." >&2
+    exit 5
+  fi
+  if ! origin_url="$(git config --get remote.origin.url 2>/dev/null)"; then
+    echo "GOV-TICKET-ALLOCATION-003: registered mode requires a canonical origin repository." >&2
+    exit 5
+  fi
+  if ! repository_ref="$(python3 "$ALLOCATION_RUNTIME" repository-ref --url "$origin_url")"; then
+    exit 5
+  fi
+  allocation_arguments=(
+    --config "$ALLOCATION_CONFIG"
+    --repository-ref "$repository_ref"
+    --allocation-key "$ALLOCATION_KEY"
+    --title "$TITLE"
+    --agent "$AGENT"
+    --workstream "$WORKSTREAM"
+    --kind "$KIND"
+    --priority "$PRIORITY"
+    --origin "$ORIGIN"
+  )
+  if [[ -z "$ALLOCATION_RECEIPT" ]]; then
+    echo "GOV-TICKET-ALLOCATION-003: registered allocation receipt is required; submit this request to the configured process URI." >&2
+    python3 "$ALLOCATION_RUNTIME" request "${allocation_arguments[@]}"
+    exit 5
+  fi
+  if ! ticket_num="$(python3 "$ALLOCATION_RUNTIME" validate "${allocation_arguments[@]}" --receipt "$ALLOCATION_RECEIPT")"; then
+    echo "  remediation: obtain a fresh receipt from the configured process URI for this exact request." >&2
+    exit 5
+  fi
+  next_num=$((10#$ticket_num))
+  if (( next_num <= highest )); then
+    echo "GOV-TICKET-ALLOCATION-004: registered ticket $ticket_num is already visible in repository state." >&2
+    echo "  remediation: continue the existing claim or request a fresh fenced allocation; do not recreate or rename it." >&2
+    exit 5
+  fi
+else
+  next_num=$((highest + 1))
+  ticket_num="$(printf '%03d' "$next_num")"
+fi
 ticket_num="$(printf '%03d' "$next_num")"
 ticket_id="ticket-$ticket_num"
 ticket_dir="project/$ticket_id"
 timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 date_only="${timestamp%%T*}"
-agent_file="ai-$AGENT.md"
-agent_log="ai-$AGENT-logs.txt"
+
+if [[ "$TICKET_STORAGE" == sqlite ]]; then
+  # Retain the existing private clone counter for older allocators. Ticket
+  # contents and revisions are stored only in SQLite, never in this cache.
+  if [[ -n "$allocation_state" ]]; then
+    allocation_state_tmp="$allocation_state.$$"
+    printf '%s\n' "$next_num" > "$allocation_state_tmp"
+    mv "$allocation_state_tmp" "$allocation_state"
+  fi
+  python3 "$TICKET_STORAGE_HELPER" create --root "$PWD" --ticket "$ticket_id" \
+    --title "$TITLE" --workstream "$WORKSTREAM" --kind "$KIND" --priority "$PRIORITY" --origin "$ORIGIN" \
+    --allocation-key "${ALLOCATION_KEY:-local:$ticket_id}" \
+    --runtime-root "$STORE_ROOT" --runtime-sha256 "$STORE_SHA256" "${SCOPE_ARGUMENTS[@]}"
+  exit 0
+fi
 
 if ! mkdir "$ticket_dir" 2>/dev/null; then
   echo "GOV-TICKET-LOCK-003: ticket directory already exists: $ticket_dir" >&2
@@ -314,8 +615,8 @@ else
 
 - **ID**: $ticket_id
 - **Owner**: unresolved:human
-- **Status**: PLAN
-- **Workflow state**: WAIT_FOR_APPROVAL
+- **Status**: IN_PROGRESS
+- **Workflow state**: EDIT
 - **Created**: $date_only
 
 ## Goal and scope
@@ -326,25 +627,10 @@ To be completed from human-owned input.
 
 - [ ] AC-01: Scope is approved by a human owner.
 
-## Participants
+## Tracking boundary
 
-- Human participant: unresolved; no user-* file was created by this script.
-- Agent participant: [$agent_file]($agent_file)
-EOF
-fi
-
-if [[ -f template/files/preprompt.template.md ]]; then
-  render_template template/files/preprompt.template.md "$ticket_dir/preprompt.md"
-else
-  cat > "$ticket_dir/preprompt.md" <<EOF
-# Ticket preprompt
-
-- **Task ID**: $ticket_id
-- **Task title**: $TITLE
-- **Created**: $timestamp
-
-Keep executable implementation outside this governance/evidence directory.
-Read a human-owned user-*.md file only when one exists.
+This directory contains the minimal reviewed intent. Optional participant prose
+and raw command logs are not required delivery output.
 EOF
 fi
 
@@ -372,46 +658,10 @@ else
 EOF
 fi
 
-if [[ -f template/files/agent-participant.template.md ]]; then
-  render_template template/files/agent-participant.template.md "$ticket_dir/$agent_file"
-else
-  cat > "$ticket_dir/$agent_file" <<EOF
----
-participant-id: agent:$AGENT
-participant: $AGENT
-role: agent
-ticket: $ticket_id
----
-# Participant: $AGENT (AI agent)
-
-## Understanding
-
-To be completed after reading human-owned input and the ticket preprompt.
-
-## Execution plan
-
-1. Validate the ticket scope and acceptance evidence before implementation.
-
-## Actual changes
-
-- None; waiting for approval.
-
-## Blockers
-
-- Human approval is required before implementation.
-EOF
+if (( ${#SCOPE_ARGUMENTS[@]} )); then
+  python3 "$TICKET_STORAGE_HELPER" scope --root "$PWD" --workstream "$WORKSTREAM" \
+    --ticket "$ticket_id" "${SCOPE_ARGUMENTS[@]}" >/dev/null
 fi
-
-: > "$ticket_dir/$agent_log"
-
-cat > "$ticket_dir/changelog.md" <<EOF
-# Ticket Changelog ($ticket_id)
-
-## [0.1.0] - $date_only
-
-- Initial governance scaffold created.
-- No human participant identity or content was generated.
-EOF
 
 if [[ -n "$USERS" ]]; then
   echo "warning: --users=$USERS did not create user-* files; human-owned input must come from a human or trusted intake boundary" >&2

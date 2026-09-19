@@ -262,10 +262,24 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 .aider*
+!.aider.conf.yml
 .github/
+!.github/
+!.github/**
 .pactown-sandboxes/
+
+# Repository-local worktrees
+/.worktrees/
 
 # Koru/planfile runtime artifacts
 .koru/
 .nlp2dsl/
 .planfile/
+
+# Repository-local worktrees and operational state
+/.subactor/leases/
+/.subactor/sessions/
+/.subactor/recovery/
+/.subactor/receipts/
+/.subactor/cache/
+/.subactor/snapshots/

@@ -1,0 +1,157 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-005",
+  "summary": "Adopt wellmanifest/new-project 0.20.35",
+  "workstream": "governance",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P2",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    "project/ticket-005/**",
+    "project/TICKETS.md",
+    "project/ticket-001/README.md",
+    "project/ticket-004/README.md",
+    ".governance/**",
+    "pyproject.toml",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    ".aider.conf.yml",
+    ".cursor/**",
+    ".gitattributes",
+    ".githooks/**",
+    ".github/copilot-instructions.md",
+    ".github/workflows/new-project-governance.yml",
+    ".github/workflows/new-project-branch-hygiene.yml",
+    ".gitignore",
+    ".subactor/**",
+    "project.bat",
+    "project.sh",
+    "project/governance-check.*",
+    "project/new-ticket.sh",
+    "scripts/**",
+    "wellmanifest_governance.py",
+    "worktree-guard.yaml",
+    "Dockerfile",
+    "Dockerfile.e2e",
+    "compose.yml",
+    "compose.e2e.yml",
+    "docker-compose.yml",
+    "docker-compose.e2e.yml"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md",
+    ".env"
+  ],
+  "stacks": [
+    "docker",
+    "python"
+  ],
+  "dependsOn": [],
+  "conflictsWith": [
+    "ticket-002"
+  ],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "18d573a52354270d3e6ccbf64ddc2407fd4fdb25",
+    "targetBranch": "main",
+    "standardAdoption": {
+      "sourceRepository": "wellmanifest/new-project",
+      "fromRevision": "a22eb47ca0e7c06ac927d1c0d843eabb798bfadd",
+      "toRevision": "cfaa0bf0ea6b0e7349fed0bb62b5ce15792d687d"
+    },
+    "outcome": "This repository runs the verified wellmanifest/new-project 0.20.35 standard with synchronized packaging pin, wellman standards runtime check, harmonized coordination workstreams, immutable container digests, and snapshot migration governance tooling.",
+    "nonGoals": [
+      "No source or public interface change in nlp2dsl.",
+      "No release and no registry publish."
+    ],
+    "complexity": "L",
+    "estimatedMinutes": 60,
+    "budgets": {
+      "maxImplementationFiles": 15,
+      "maxAffectedComponents": 5,
+      "maxPublicInterfaceChanges": 3,
+      "maxRuntimeDependencies": 3
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Adopt standard 0.20.35 using create_adoption_lock.py --upgrade, update pyproject.toml [tool.wellmanifest] pin to 0.20.35 and wellman>=0.20.35 dependency, pin container images, and verify zero drift across all test suites and governance gates.",
+      "components": [
+        {
+          "name": "governance-instance",
+          "paths": [
+            ".governance/**",
+            "project/ticket-005/**",
+            "project/ticket-001/README.md",
+            "project/ticket-004/README.md",
+            "project/TICKETS.md",
+            ".gitattributes",
+            ".gitignore",
+            "project.bat",
+            "project.sh",
+            "project/governance-check.*",
+            ".subactor/**",
+            "wellmanifest_governance.py",
+            "worktree-guard.yaml"
+          ]
+        },
+        {
+          "name": "packaging-pin",
+          "paths": [
+            "pyproject.toml"
+          ]
+        },
+        {
+          "name": "managed-guidance",
+          "paths": [
+            "AGENTS.md",
+            "CLAUDE.md",
+            "GEMINI.md",
+            ".aider.conf.yml",
+            ".cursor/**",
+            ".github/copilot-instructions.md",
+            ".github/workflows/new-project-governance.yml",
+            ".github/workflows/new-project-branch-hygiene.yml",
+            ".githooks/**",
+            "scripts/**",
+            "project/new-ticket.sh"
+          ]
+        },
+        {
+          "name": "container-configuration",
+          "paths": [
+            "Dockerfile",
+            "Dockerfile.e2e",
+            "compose.yml",
+            "compose.e2e.yml",
+            "docker-compose.yml",
+            "docker-compose.e2e.yml"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert commit to restore 0.14.0 governance files and packaging pin."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "python3 scripts/create_adoption_lock.py --target-root . --source-revision cfaa0bf0ea6b0e7349fed0bb62b5ce15792d687d --upgrade",
+          "./project/governance-check.sh --base 18d573a52354270d3e6ccbf64ddc2407fd4fdb25 --head HEAD",
+          "wellman check"
+        ],
+        "evidence": "Pending exact-head publication."
+      }
+    ]
+  }
+}

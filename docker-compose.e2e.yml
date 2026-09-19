@@ -5,18 +5,18 @@
 
 services:
   smtp-mock:
-    image: mailhog/mailhog:latest
+    image: mailhog/mailhog:latest@sha256:8d76a3d4ffa32a3661311944007a415332c4bb855657f4f6c57996405c009bea
     ports:
       - "${SMTP_MOCK_PORT:-8025}:8025"
       - "${SMTP_MOCK_SMTP_PORT:-1025}:1025"
     profiles: [email, invoice]
 
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:RELEASE.2024-08-03T04-33-23Z@sha256:c933bb53ac226d1f4bdfeac66a3854d02903771e91d7ee2cbc330841a1d77d7e
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-changeme}
     ports:
       - "${MINIO_API_PORT:-9000}:9000"
       - "${MINIO_CONSOLE_PORT:-9001}:9001"
@@ -25,7 +25,7 @@ services:
     profiles: [storage, reports]
 
   example-fixtures:
-    image: alpine:3.20
+    image: alpine:3.20@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc
     profiles: [conversation, invoice, email, reports, scheduled]
     volumes:
       - ./examples/01-invoice/.nlp2dsl/fixtures:/fixtures/01-invoice:ro

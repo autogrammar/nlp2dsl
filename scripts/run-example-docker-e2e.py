@@ -420,6 +420,10 @@ def main(argv: list[str] | None = None) -> int:
         reports.append(process_example(eid, entry, base_url=base_url, skip_main=args.skip_main, run_llm=args.llm))
 
     if args.testql_results and RESULTS_SCRIPT.is_file():
+        try:
+            subprocess.run(["sudo", "chown", "-R", f"{os.getuid()}:{os.getgid()}", str(ROOT / "examples")], check=False)
+        except Exception:
+            pass
         env = {**os.environ, "NLP2DSL_URL": base_url, "NLP2DSL_EXECUTE": "1"}
         subprocess.run([_py(), str(RESULTS_SCRIPT), *example_ids], cwd=ROOT, env=env, check=False)
 
