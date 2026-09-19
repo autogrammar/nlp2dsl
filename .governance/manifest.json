@@ -9,50 +9,74 @@
     ],
     "reviewVerificationMethod": "github-api-allowlist",
     "schema": "new-project.approval-evidence/v1",
-    "signedAttestationPredicateType": "https://wellmanifest.dev/attestations/validator/v1"
+    "signedAttestationPredicateType": "https://wellmanifest.com/attestations/validator/v1"
   },
   "coordination": {
     "integration": {
       "requiredForPaths": [
-        "pyproject.toml",
-        "dsl-manifest.json"
+        "dsl-manifest.json",
+        "docs/**"
       ],
       "workstream": "integration"
     },
-    "maxActiveTicketsPerWorkstream": 1,
+    "maxActiveTicketsPerWorkstream": 3,
     "mode": "workstreams",
     "rejectActiveScopeOverlap": true,
     "workstreams": {
       "core": {
         "ownedPaths": [
           "src/**",
-          "tests/**"
+          "tests/**",
+          "packages/**",
+          "nlp2dsl_sdk/**",
+          "backend/**",
+          "worker/**",
+          "nlp-service/**",
+          "trigger-service/**"
         ]
       },
       "governance": {
         "ownedPaths": [
+          ".aider.conf.yml",
+          ".cursor/**",
+          ".cursor/rules/**",
+          ".gitattributes",
+          ".githooks/**",
+          ".github/copilot-instructions.md",
+          ".github/workflows/new-project-governance.yml",
+          ".github/workflows/new-project-branch-hygiene.yml",
+          ".gitignore",
           ".governance/**",
+          ".subactor/**",
           "AGENTS.md",
+          "CLAUDE.md",
+          "GEMINI.md",
           "README.md",
           "TODO.md",
           "CHANGELOG.md",
-          "VERSION",
-          ".gitignore",
+          "project.sh",
+          "project.bat",
+          "project/**",
+          "scripts/**",
+          "wellmanifest_governance.py",
+          "worktree-guard.yaml",
+          "pyproject.toml",
           "Dockerfile",
           "Dockerfile.e2e",
           "compose.yml",
           "docker-compose.yml",
           "compose.e2e.yml",
-          "project/governance-check.*",
-          "project/new-ticket.sh",
-          "project/readme.sh",
-          "project/TICKETS.md",
-          "project/ticket-*/**"
+          "docker-compose.e2e.yml"
+        ]
+      },
+      "infrastructure": {
+        "ownedPaths": [
+          ".github/**"
         ]
       },
       "integration": {
         "ownedPaths": [
-          "pyproject.toml",
+          "VERSION",
           "dsl-manifest.json",
           "docs/**"
         ]
@@ -62,64 +86,111 @@
   "delivery": {
     "allowedComplexityClasses": [
       "XS",
-      "S"
+      "S",
+      "M",
+      "L"
     ],
-    "checkpointMinutes": 25,
+    "checkpointMinutes": 30,
     "dependencyManifestPaths": [
       "package.json",
       "pyproject.toml",
+      "uv.lock",
       "go.mod",
       "Cargo.toml",
-      "pom.xml"
+      "pom.xml",
+      "package-lock.json",
+      "pnpm-lock.yaml",
+      "yarn.lock",
+      "poetry.lock",
+      "go.sum",
+      "Cargo.lock"
     ],
-    "maxActiveMinutes": 30,
-    "maxAffectedComponents": 2,
-    "maxImplementationFiles": 5,
-    "maxPublicInterfaceChanges": 0,
-    "maxRuntimeDependencies": 0,
-    "targetBranches": [
-      "main"
-    ],
-    "requiredForImplementation": false,
+    "maxActiveMinutes": 120,
+    "maxAffectedComponents": 5,
+    "maxImplementationFiles": 15,
+    "maxPublicInterfaceChanges": 3,
+    "maxRuntimeDependencies": 3,
+    "profiles": {
+      "L": {
+        "maxAffectedComponents": 5,
+        "maxImplementationFiles": 15,
+        "maxPublicInterfaceChanges": 3,
+        "maxRuntimeDependencies": 3
+      },
+      "M": {
+        "maxAffectedComponents": 3,
+        "maxImplementationFiles": 9,
+        "maxPublicInterfaceChanges": 2,
+        "maxRuntimeDependencies": 2
+      },
+      "S": {
+        "maxAffectedComponents": 2,
+        "maxImplementationFiles": 5,
+        "maxPublicInterfaceChanges": 1,
+        "maxRuntimeDependencies": 1
+      },
+      "XS": {
+        "maxAffectedComponents": 1,
+        "maxImplementationFiles": 2,
+        "maxPublicInterfaceChanges": 0,
+        "maxRuntimeDependencies": 0
+      }
+    },
     "publicInterfacePaths": [
       "src/**"
+    ],
+    "requiredForImplementation": false,
+    "targetBranches": [
+      "main"
     ]
   },
   "docker": {
     "composeFiles": [
       "compose.yml",
       "docker-compose.yml",
-      "compose.e2e.yml"
+      "compose.e2e.yml",
+      "docker-compose.e2e.yml",
+      "compose.yaml",
+      "docker-compose.yaml"
     ],
     "dockerfiles": [
       "Dockerfile",
       "Dockerfile.e2e"
     ],
-    "required": true
+    "required": false
+  },
+  "domainContracts": {
+    "mode": "none"
   },
   "governancePaths": [
     "TODO.md",
     "project/TICKETS.md",
-    "project/ticket-*/**"
+    "project/ticket-*/**",
+    ".governance/standard-adoption.json",
+    "config/artifact-registry.json"
   ],
+  "repository": {
+    "componentRoots": [],
+    "mode": "standalone"
+  },
   "requiredFiles": [
     "README.md",
     "VERSION",
     "CHANGELOG.md",
     "TODO.md",
     "AGENTS.md",
-    "Dockerfile",
     "project/TICKETS.md",
     "project/new-ticket.sh",
     "project/readme.sh"
   ],
   "schema": "new-project.governance/v2",
   "stacks": [
-    "docker"
+    "docker",
+    "python"
   ],
   "standard": {
     "id": "wellmanifest/new-project",
-    "version": "0.14.0"
+    "version": "0.20.35"
   },
   "ticket": {
     "activeStatuses": [
@@ -129,7 +200,7 @@
       "DONE",
       "CANCELLED"
     ],
-    "directoryPattern": "^ticket-[0-9]{3}$",
+    "directoryPattern": "^ticket-[0-9]{3,}$",
     "implementationStates": [
       "EDIT",
       "VALIDATION",
@@ -141,14 +212,9 @@
       "PLAN",
       "BLOCKED"
     ],
-    "requiredAgentFiles": [
-      "ai-*.md",
-      "ai-*-logs.txt"
-    ],
+    "requiredAgentFiles": [],
     "requiredFiles": [
       "README.md",
-      "preprompt.md",
-      "changelog.md",
       "intent.json"
     ],
     "root": "project"

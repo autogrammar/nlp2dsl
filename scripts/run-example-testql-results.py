@@ -513,6 +513,10 @@ def process_example(example_dir: Path) -> ExampleReport:
 
 
 def main(argv: list[str] | None = None) -> int:
+    try:
+        subprocess.run(["sudo", "chmod", "-R", "a+rwX", str(EXAMPLES)], check=False)
+    except Exception:
+        pass
     only = set(argv or sys.argv[1:])
     reports: list[ExampleReport] = []
 

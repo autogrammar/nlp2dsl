@@ -106,7 +106,7 @@ services:
 
   # ── SMTP capture (dev) ───────────────────────────────────────
   mailhog:
-    image: mailhog/mailhog:latest
+    image: mailhog/mailhog:latest@sha256:8d76a3d4ffa32a3661311944007a415332c4bb855657f4f6c57996405c009bea
     ports:
       - "${MAILHOG_SMTP_PORT:-1025}:1025"
       - "${MAILHOG_UI_PORT:-18025}:8025"
@@ -116,7 +116,7 @@ services:
 
   # ── Database ─────────────────────────────────────────────────
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:3c5c8892d184f738f4fe282d14ddaa613a38f00f4189d2d94725ebe6f2909ddb
     environment:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
@@ -145,7 +145,7 @@ services:
 
   # ── Cache / Queue ────────────────────────────────────────────
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:520775a41a63e77e06c73e35d2fd9cc15921a609516818796b4ecbb813078bc7
     restart: unless-stopped
 
   # ── (Opcjonalnie) Lokalny LLM ───────────────────────────────
